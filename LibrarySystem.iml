@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="Utf-8"?>
+ import java.util.*;
+import java.time.LocalDate;
+
+public class LibrarySystem {
+    private static List<Book> books = new ArrayList<>();
+    private static List<Borrower> borrowers = new ArrayList<>();
+    private static List<BorrowingProcess> borrowings = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice;
+        do {
+            showMenu();
+            choice = scanner.nextInt();
+            scanner.nextLine(); // تنظيف السطر
+            switch (choice) {
+                case 1 -> addBook();
+                case 2 -> addBorrower();
+                case 3 -> borrowBook();
+                case 4 -> returnBook();
+                case 5 -> searchBook();
+                case 6 -> searchBorrower();
+                case 7 -> showBorrowedBooks();
+                case 0 -> System.out.println("خروج من النظام.");
+                default -> System.out.println("خيار غير صحيح.");
+            }
+        } while (choice != 0);
+    }
+
+    private static void showMenu() {
+        System.out.println("\n--- نظام إدارة مكتبة رقمية ---");
+        System.out.println("1. إضافة كتاب جديد");
+        System.out.println("2. إضافة مستعير جديد");
+        System.out.println("3. إعارة كتاب");
+        System.out.println("4. استرجاع كتاب");
+        System.out.println("5. البحث عن كتاب");
+        System.out.println("6. البحث عن مستعير");
+        System.out.println("7. عرض الكتب المستعارة من طرف مستعير");
+        System.out.println("0. خروج");
+        System.out.print("اختر خياراً: ");
+    }
+
+    private static void addBook() {
+        System.out.print("العنوان: ");
+        String title = scanner.nextLine();
+        System.out.print("المؤلف: ");
+        String author = scanner.nextLine();
+        System.out.print("ISBN: ");
+        String isbn = scanner.nextLine();
+        System.out.print("نوع الكتاب (1: ورقي، 2: إلكتروني): ");
+        int type = scanner.nextInt();
+        scanner.nextLine();
+
+        Book book = (type == 1)
+            ? new PaperBook(title, author, isbn)
+            : new EBook(title, author, isbn);
+
+        books.add(book);
+        System.out.println("تمت إضافة الكتاب بنجاح.");
+    }
+
+    private static void addBorrower() {
+        System.out.print("اسم المستعير: ");
+        String name = scanner.nextLine();
+        System.out.print("الرقم الجامعي: ");
+        String id = scanner.nextLine();
+
+        borrowers.add(new Borrower(name, id));
+        System.out.println("تمت إضافة المستعير.");
+    }
+
+    private static void borrowBook() {
+        System.out.print("رقم ISBN: ");
+        String isbn = scanner.nextLine();
+        Book book = findBookByIsbn(isbn);
+        if (book == null || book.isBorrowed()) {
+            System.out.println("الكتاب غير موجود أو مستعار.");
+            return;
+        }
+
+        System.out.print("رقم الطالب: ");
+        String id = scanner.nextLine();
+        Borrower borrower = findBorrowerById(id);
+        if (borrower == null) {
+            System.out.println("المستعير غير موجود.");
+            return;
+        }
+
+        borrower.borrowBook(book);
+        borrowings.add(new BorrowingProcess(book, borrower, LocalDate.now()));
+        System.out.println("تمت إعارة الكتاب.");
+    }
+
+    private static void returnBook() {
+        System.out.print("رقم ISBN: ");
+        String isbn = scanner.nextLine();
+        Book book = findBookByIsbn(isbn);
+        if (book == null || !book.isBorrowed()) {
+            System.out.println("الكتاب غير مستعار.");
+            return;
+        }
+
+        System.out.print("رقم الطالب: ");
+        String id = scanner.nextLine();
+        Borrower borrower = findBorrowerById(id);
+        if (borrower == null || !borrower.hasBorrowed(book)) {
+            System.out.println("هذا المستعير لم يستعر هذا الكتاب.");
+            return;
+        }                                                                                                             
